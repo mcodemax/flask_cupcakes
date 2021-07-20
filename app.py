@@ -20,6 +20,12 @@ debug = DebugToolbarExtension(app)
 connect_db(app)
 db.create_all()
 
+@app.route('/')
+def home():
+    """return html that shows all cupcakes"""
+    
+    #returns empty page w/ 1.button that lists all cupcakes via js and 2. has a form that uses axios to submit request to add new cupcake
+    return render_template('index.html')
 
 @app.route('/api/cupcakes')
 def all_cupcakes_info():
@@ -57,4 +63,35 @@ def cupcake_info(cupcake_id):
     serialized_cupcake = cupcake.serialize_cupcake()
 
     return jsonify(cupcake=serialized_cupcake)
+
+@app.route('/api/cupcakes/<int:cupcake_id>', methods=["PATCH"])
+def update_cupcake(cupcake_id):
+    """Update cupcake info"""
+    
+    cupcake = Cupcake.query.get_or_404(cupcake_id)
+    #maybe add in a for loop here or something and check if it even got updated; or use that method that changes something or defaults it e.g.: f(change2thing, default)
+    #maybe res = request.get_json()
+    # cupcake.flavor = res['flavor'] if res['flavor'] else cupcake.flavor
+    
+    # https://www.kite.com/python/docs/flask.request.get_json
+    cupcake.flavor = request.json["flavor"]
+    cupcake.size = request.json["size"]
+    cupcake.rating = request.json["rating"]
+    cupcake.image = request.json["image"]
+    
+    db.session.commit()
+    serialized_cupcake = cupcake.serialize_cupcake()
+    
+    return jsonify(cupcake=serialized_cupcake)
+
+
+@app.route('/api/cupcakes/<int:cupcake_id>', methods=["DELETE"])
+def delete_cupcake(cupcake_id):
+    """Delete a cupcake in database"""
+    
+    cupcake = Cupcake.query.get_or_404(cupcake_id)
+    db.session.delete(cupcake)
+    db.session.commit()
+    
+    return jsonify({'message': 'deleted'}) #single or double quotes?
 
