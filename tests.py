@@ -1,14 +1,15 @@
 from unittest import TestCase
-
 from app import app
 from models import db, Cupcake
 
 # Use test database and don't clutter tests with SQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///cupcakes_test'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:myPassword@localhost:5433/cupcakes_test'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 
 # Make Flask errors be real errors, rather than HTML pages with error info
 app.config['TESTING'] = True
+app.config['DEBUG_TB_HOSTS'] = ['dont-show-debug-toolbar']
 
 db.drop_all()
 db.create_all()
@@ -27,6 +28,13 @@ CUPCAKE_DATA_2 = {
     "rating": 10,
     "image": "http://test.com/cupcake2.jpg"
 }
+
+CUPCAKE_DATA_PATCH = {
+    "flavor": "Testchang2",
+    "size": "sizechng",
+    "image": "http://test.com/cupchange.jpg"
+}
+
 
 
 class CupcakeViewsTestCase(TestCase):
@@ -107,3 +115,27 @@ class CupcakeViewsTestCase(TestCase):
             })
 
             self.assertEqual(Cupcake.query.count(), 2)
+
+    def test_patch_cupcake(self):
+        """test PATCH request"""
+        with app.test_client() as client:
+            url = f"/api/cupcakes/{self.cupcake.id}"
+            resp = client.patch(url, json=CUPCAKE_DATA_PATCH)
+
+            self.assertEqual(resp.json, {
+                "cupcake": {
+                "id": self.cupcake.id,
+                "flavor": "Testchang2",
+                "size": "sizechng",
+                "rating": 5,
+                "image": "http://test.com/cupchange.jpg"
+                }
+            })
+
+    def test_delete_cupcake(self):
+        """test cupcake deletion"""
+        with app.test_client() as client:
+            url = f"/api/cupcakes/{self.cupcake.id}"
+            resp = client.delete(url)
+
+            self.assertEqual(resp.json, {'message': 'deleted'})
