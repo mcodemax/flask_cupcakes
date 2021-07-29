@@ -5,16 +5,17 @@ from flask import Flask, request, render_template, redirect, flash, session, jso
 from flask_debugtoolbar import DebugToolbarExtension
 from models import db, connect_db, Cupcake
 from flask_cors import CORS
+import os
 
 
 
 app = Flask(__name__)
 CORS(app) #https://flask-cors.readthedocs.io/en/latest/
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:myPassword@localhost:5433/cupcakes' #@ people looking at this code; you may need to change on your own computer for code to work
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'postgresql://postgres:myPassword@localhost:5433/cupcakes')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True #prints in ipython the queries being run
 
-app.config["SECRET_KEY"] = "maxcode1"
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY', 'idkpassword')
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 # debug = DebugToolbarExtension(app)
 
